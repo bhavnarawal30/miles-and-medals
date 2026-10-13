@@ -585,8 +585,20 @@ a { color: inherit; text-decoration: none; }
 .exp-close:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .exp.is-live .exp-close { opacity: 1; visibility: visible; }
 @media (max-width: 600px) {
-  .exp-stage { grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.6fr) minmax(0, 0.62fr); gap: 8px; --stage-h: 460px; }
-  .exp-side { gap: 8px; }
+  /* phones: the route card takes the full width on top and the photos sit
+     two columns side by side underneath it (desktop keeps photo|card|photo) */
+  .exp-stage {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "card card" "left right";
+    grid-template-rows: var(--stage-h) auto;
+    gap: 10px;
+    --stage-h: 460px;
+  }
+  .exp:not(.is-live) .exp-stage { height: auto; }
+  .exp-stage > .exp-card { grid-area: card; }
+  .exp-stage > .is-left { grid-area: left; }
+  .exp-stage > .is-right { grid-area: right; }
+  .exp-side { gap: 10px; height: 420px; }
   .exp-photo { border-radius: 10px; }
 }
 .exp-plane { position: absolute; overflow: visible; }
