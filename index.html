@@ -585,25 +585,19 @@ a { color: inherit; text-decoration: none; }
 .exp-close:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .exp.is-live .exp-close { opacity: 1; visibility: visible; }
 @media (max-width: 600px) {
-  /* phones: the card stays in the middle, a little wider, and one photo a
-     side peeks out from behind it, running off the screen edge and set back
-     a touch, so the sides read as a frame rather than clutter. Desktop keeps
-     two photos a side. */
+  /* phones: photos stay at the sides, fully in view, but only one a side
+     (the rest show on desktop) so the strips are wider and calmer; Bison's
+     envelope stays under its left photo. Desktop keeps two a side. */
   .exp-stage {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 4.4fr) minmax(0, 1fr);
-    gap: 0;
-    margin-inline: -16px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.3fr) minmax(0, 1fr);
+    gap: 8px;
     --stage-h: 470px;
   }
-  .exp-card { z-index: 2; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55); }
-  .exp-side { gap: 10px; padding-block: 34px; }
-  .exp-side.is-left { margin-right: -16px; }
-  .exp-side.is-right { margin-left: -16px; }
+  .exp-side { gap: 8px; }
   .exp-side > .exp-photo ~ .exp-photo { display: none; }
-  .exp-side .exp-photo { opacity: 0.75; }
-  .exp-side.is-left .exp-photo { border-radius: 0 10px 10px 0; }
-  .exp-side.is-right .exp-photo { border-radius: 10px 0 0 10px; }
-  .exp-side.is-left .exp-letter { flex: 0 0 auto; border-radius: 0 10px 10px 0; }
+  .exp-photo { border-radius: 10px; }
+  .exp-letter { border-radius: 10px; }
+  .exp-go { white-space: nowrap; padding-inline: 16px; font-size: 13px; }
 
 }
 .exp-plane { position: absolute; overflow: visible; }
@@ -2078,11 +2072,11 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
   function renderSummary() {
     const totalKm = medals.reduce((sum, m) => sum + m.km, 0);
     const stats = [
-      [medals.length, "", medals.length === 1 ? "medal" : "medals"],
+      [medals.length, "", medals.length === 1 ? "medal earned" : "medals earned"],
       [Math.round(totalKm), "km", "raced"],
       // Bhavna's own figures: the longest run isn't one of the medal races
-      [25, "km", "longest"],
-      ["Jul 2025", "", "started"],
+      [25, "km", "longest run"],
+      ["Jul 2025", "", "running started"],
     ];
     summary.replaceChildren(
       ...stats.map(([value, unit, label, before]) => {
