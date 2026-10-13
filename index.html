@@ -85,27 +85,33 @@ a { color: inherit; text-decoration: none; }
 .summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 32px;
-  margin: 14px 0 0;
-}
-.summary div { display: grid; }
-.summary dt {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  align-items: baseline;
+  gap: 6px 0;
+  margin: 18px 0 0;
   color: var(--muted);
+  font-size: 14px;
 }
-.summary dd {
-  margin: 0;
-  font-family: var(--display);
-  font-style: italic;
-  font-weight: 800;
-  font-size: 30px;
-  line-height: 1.1;
+.sum-item { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+/* a small gold dot between figures */
+.sum-item + .sum-item::before {
+  content: "";
+  width: 4px; height: 4px;
+  margin: 0 14px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0.55;
+  align-self: center;
+}
+.sum-num {
+  font-family: "Outfit", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  color: var(--fg);
   font-variant-numeric: tabular-nums;
 }
-.summary dd small { font-size: 0.55em; font-weight: 700; color: var(--muted); margin-left: 3px; }
+.sum-num small { font-size: 0.6em; font-weight: 500; color: var(--muted); margin-left: 2px; }
+.sum-label { letter-spacing: 0.01em; }
 
 /* ---------- Toolbar ---------- */
 .toolbar {
@@ -122,6 +128,7 @@ a { color: inherit; text-decoration: none; }
 .sample-note { margin: 0; font-size: 13px; color: var(--muted); }
 
 .view-toggle {
+  position: relative;
   display: inline-flex;
   padding: 4px;
   background: var(--surface);
@@ -143,7 +150,18 @@ a { color: inherit; text-decoration: none; }
 }
 .view-toggle svg { width: 13px; height: 13px; fill: currentColor; }
 .view-toggle button:hover { color: var(--fg); }
-.view-toggle button[aria-checked="true"] { background: var(--fg); color: var(--bg); }
+.view-toggle button { position: relative; z-index: 1; }
+.view-toggle button[aria-checked="true"] { color: var(--bg); }
+/* the white pill that slides under the chosen button */
+.view-thumb {
+  position: absolute;
+  top: 4px; bottom: 4px; left: 0;
+  border-radius: 999px;
+  background: var(--fg);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+.view-toggle svg rect { transform-box: fill-box; transform-origin: center; }
+.view-toggle button[data-view="list"] svg rect { transform-origin: left center; }
 
 :where(.view-toggle button, .medal, .row-link, .back):focus-visible {
   outline: 2px solid var(--gold);
@@ -877,8 +895,8 @@ a { color: inherit; text-decoration: none; }
   .page { padding-inline: 16px; padding-block: 32px 64px; }
   /* phones: medals and summary stats two per row */
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
-  .summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
-  .summary dd { font-size: 26px; }
+  .summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; }
+  .sum-item + .sum-item::before { display: none; }
   .row-link { gap: 16px; padding-block: 22px; align-items: start; }
   .row-side { width: 92px; gap: 10px; }
   .row-thumb { width: 76px; }
@@ -1268,7 +1286,7 @@ a { color: inherit; text-decoration: none; }
       <header class="masthead">
         <p class="eyebrow">My medal cabinet</p>
         <h1 class="title">Miles &amp; Medals</h1>
-        <dl class="summary" id="summary"></dl>
+        <p class="summary" id="summary"></p>
       </header>
 
       <div class="toolbar">
@@ -2038,18 +2056,36 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
   };
 
   // ---------- summary ----------
+  // One quiet line of figures: big numbers in the heading face, small muted
+  // words after them, thin dots between. The numbers count up once on load.
   function renderSummary() {
     const totalKm = medals.reduce((sum, m) => sum + m.km, 0);
     const stats = [
-      ["Medals", String(medals.length), ""],
-      ["Distance raced", Math.round(totalKm).toLocaleString("en-GB"), "km"],
+      [medals.length, "", medals.length === 1 ? "medal" : "medals"],
+      [Math.round(totalKm), "km", "raced"],
       // Bhavna's own figures: the longest run isn't one of the medal races
-      ["Longest distance", "25", "km"],
-      ["Running since", "Jul 2025", ""],
+      [25, "km", "longest"],
+      ["Jul 2025", "", "running since", true],
     ];
     summary.replaceChildren(
-      ...stats.map(([label, value, unit]) => el("div", {}, [el("dt", { text: label }), withUnit("dd", value, unit)]))
+      ...stats.map(([value, unit, label, before]) => {
+        const num = el("b", { class: "sum-num", text: String(value) });
+        if (unit) num.append(el("small", { text: unit }));
+        if (typeof value === "number") num.dataset.count = value;
+        return el("span", { class: "sum-item" }, before ? [el("span", { class: "sum-label", text: label }), num] : [num, el("span", { class: "sum-label", text: label })]);
+      })
     );
+    if (reduceMotion.matches) return;
+    summary.querySelectorAll("[data-count]").forEach((b, i) => {
+      const to = +b.dataset.count, text = b.firstChild, t0 = performance.now() + 250 + i * 90, dur = 900;
+      text.textContent = "0";
+      const tick = (now) => {
+        const p = Math.min(1, Math.max(0, (now - t0) / dur));
+        text.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))).toLocaleString("en-GB");
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
   }
 
   // ---------- grid ----------
@@ -3760,14 +3796,90 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
   grid.addEventListener("click", onMedalTap);
   rows.addEventListener("click", onMedalTap);
 
-    // ---------- view toggle ----------
-  function setView(view) {
+  // ---------- view toggle ----------
+  // A white thumb slides under the chosen button (stretching as it travels),
+  // the chosen icon redraws itself, and the medals fly between their grid
+  // slots and the list thumbnails while the race details slide in.
+  const toggleBox = document.querySelector(".view-toggle");
+  const thumb = el("span", { class: "view-thumb", "aria-hidden": "true" });
+  toggleBox.prepend(thumb);
+  function placeThumb(btn, animate) {
+    const x = btn.offsetLeft, w = btn.offsetWidth;
+    const from = { x: parseFloat(thumb.dataset.x || x), w: parseFloat(thumb.dataset.w || w) };
+    thumb.style.width = `${w}px`;
+    thumb.style.transform = `translateX(${x}px)`;
+    thumb.dataset.x = x; thumb.dataset.w = w;
+    if (!animate || reduceMotion.matches || !thumb.animate) return;
+    const mid = Math.abs(x - from.x) + Math.max(w, from.w);
+    thumb.animate([
+      { width: `${from.w}px`, transform: `translateX(${from.x}px)` },
+      { width: `${mid}px`, transform: `translateX(${Math.min(x, from.x)}px)`, offset: 0.45 },
+      { width: `${w}px`, transform: `translateX(${x}px)` },
+    ], { duration: 420, easing: "cubic-bezier(0.3, 0.9, 0.3, 1.15)" });
+  }
+  function drawIcon(btn) {
+    if (reduceMotion.matches) return;
+    const parts = [...btn.querySelectorAll("rect")];
+    const list = btn.dataset.view === "list";
+    parts.forEach((r, i) => r.animate(
+      list ? [{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }] : [{ transform: "scale(0) rotate(-90deg)" }, { transform: "scale(1)" }],
+      { duration: 320, delay: i * 60, easing: "cubic-bezier(0.3, 1.4, 0.5, 1)", fill: "backwards" }
+    ));
+  }
+  const idOf = (node) => (node.closest("a") || node).getAttribute("href");
+  const boxes = (sel) => {
+    const out = new Map();
+    document.querySelectorAll(sel).forEach((n) => {
+      const r = n.getBoundingClientRect();
+      if (r.width && r.bottom > -200 && r.top < innerHeight + 200) out.set(idOf(n), r);
+    });
+    return out;
+  };
+  function setView(view, animate) {
+    const was = grid.hidden ? "list" : "grid";
+    const btn = [...toggles].find((b) => b.dataset.view === view);
+    const fancy = animate && view !== was && !reduceMotion.matches && Element.prototype.animate;
+    // where every visible medal sits before the switch
+    const before = fancy ? boxes(was === "grid" ? ".medal" : ".row-thumb") : null;
     grid.hidden = view !== "grid";
     list.hidden = view !== "list";
     toggles.forEach((b) => b.setAttribute("aria-checked", String(b.dataset.view === view)));
+    placeThumb(btn, animate);
     try { localStorage.setItem("runstats-view", view); } catch (_) {}
+    if (!fancy) return;
+    drawIcon(btn);
+    // FLIP: each medal starts where it was and flies to its new place
+    const targets = view === "grid" ? grid.querySelectorAll(".medal") : rows.querySelectorAll(".row-thumb");
+    let k = 0;
+    targets.forEach((n) => {
+      const to = n.getBoundingClientRect(), from = before.get(idOf(n));
+      if (!to.width || to.top > innerHeight + 200 || to.bottom < -200) return;
+      const delay = k++ * 45;
+      if (!from) {
+        n.animate([{ opacity: 0, transform: "translateY(16px) scale(0.9)" }, { opacity: 1, transform: "none" }], { duration: 420, delay, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "backwards" });
+        return;
+      }
+      const s = from.width / to.width;
+      const tilt = view === "list" ? -8 : 8;
+      n.style.transformOrigin = "0 0";
+      n.animate([
+        { transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${s})` },
+        { transform: `translate(${(from.left - to.left) * 0.35}px, ${(from.top - to.top) * 0.35 - 14}px) scale(${1 + (s - 1) * 0.35}) rotate(${tilt}deg)`, offset: 0.6 },
+        { transform: "none" },
+      ], { duration: 640, delay, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "backwards" }).onfinish = () => (n.style.transformOrigin = "");
+    });
+    // list: the race details slide in after their medal lands
+    if (view === "list") {
+      let j = 0;
+      rows.querySelectorAll(".row-main, .race-type").forEach((n) => {
+        const r = n.getBoundingClientRect();
+        if (r.top > innerHeight + 100) return;
+        n.animate([{ opacity: 0, transform: "translateX(-18px)" }, { opacity: 1, transform: "none" }],
+          { duration: 380, delay: 180 + (j++ >> 0) * 30, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "backwards" });
+      });
+    }
   }
-  toggles.forEach((b) => b.addEventListener("click", () => setView(b.dataset.view)));
+  toggles.forEach((b) => b.addEventListener("click", () => setView(b.dataset.view, true)));
 
   // ---------- routing: #race-<id> opens a race, anything else is home ----------
   let homeScroll = 0;
@@ -3900,6 +4012,10 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
   let saved = "grid";
   try { saved = localStorage.getItem("runstats-view") || "grid"; } catch (_) {}
   setView(saved === "list" ? "list" : "grid");
+  // the thumb's size depends on the button text, so re-place it once fonts land and on resize
+  const replaceThumb = () => placeThumb([...toggles].find((b) => b.getAttribute("aria-checked") === "true"), false);
+  if (document.fonts) document.fonts.ready.then(replaceThumb);
+  addEventListener("resize", replaceThumb);
   route();
 
 })();
