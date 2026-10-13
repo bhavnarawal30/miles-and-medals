@@ -3135,15 +3135,16 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
         photos.forEach((x) => x.classList.remove("is-noted"));
         f.classList.toggle("is-noted", on);
       }));
-      // two photos a side; a race with a write-up gets the letter at the top right
-      const rightItems = photos.slice(half);
+      // two photos a side; a race with a write-up gets the letter in the left
+      // column, between its two photos
+      const leftItems = photos.slice(0, half);
       if (data.writeup && m) {
         const env = writeup.envelope(data.writeup, m);
         env.style.setProperty("--k", "1");
-        rightItems.unshift(env);
+        leftItems.splice(1, 0, env);
       }
-      const left = el("div", { class: "exp-side is-left" }, photos.slice(0, half));
-      const right = el("div", { class: "exp-side is-right" }, rightItems);
+      const left = el("div", { class: "exp-side is-left" }, leftItems);
+      const right = el("div", { class: "exp-side is-right" }, photos.slice(half));
       const shut = el("button", { type: "button", class: "exp-close", "aria-label": "Close the run" });
       shut.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
       shut.addEventListener("click", () => close());
