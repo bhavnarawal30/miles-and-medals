@@ -875,8 +875,9 @@ a { color: inherit; text-decoration: none; }
 /* ---------- Responsive ---------- */
 @media (max-width: 560px) {
   .page { padding-inline: 16px; padding-block: 32px 64px; }
-  .grid { gap: 20px 12px; }
-  .summary { gap: 8px 24px; }
+  /* phones: medals and summary stats two per row */
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
+  .summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
   .summary dd { font-size: 26px; }
   .row-link { gap: 16px; padding-block: 22px; align-items: start; }
   .row-side { width: 92px; gap: 10px; }
@@ -1265,7 +1266,7 @@ a { color: inherit; text-decoration: none; }
     <!-- Home: medal cabinet -->
     <div id="home">
       <header class="masthead">
-        <p class="eyebrow">Medal cabinet</p>
+        <p class="eyebrow">My medal cabinet</p>
         <h1 class="title">Miles &amp; Medals</h1>
         <dl class="summary" id="summary"></dl>
       </header>
@@ -1333,7 +1334,7 @@ window.MEDALS = [
   { id: 4,  name: "Tuffman Delhi 2025",       date: "2025-08-24", city: "Delhi",        km: 5.49,   time: "0:39:44", effort: "Steady", type: "Road Race", image: "images/medal-tuffman.webp", head: "images/medal-tuffman-head.webp", metal: "images/medal-tuffman-metal.webp", strap: "tuff", pivot: "39.1%", rank: 5 },
   { id: 5,  name: "Bison Ultra 2026",         date: "2026-06-07", city: "Yercaud",      km: 18.27,  time: "2:57:00", effort: "All-out", type: "Trail Run", image: "images/medal-bison.webp", head: "images/medal-bison-head.webp", strap: "jute", hole: [359.5, 246], pivot: "27.3%", rank: 1 },
   { id: 6,  name: "BMF Ultra 2026",           date: "2026-06-25", city: "Bengaluru",    km: 10.38,  time: "1:31:20", effort: "Steady", type: "Trail Run", image: "images/medal-bmf.webp", head: "images/medal-bmf-head.webp", metal: "images/medal-bmf-metal.webp", strap: "bmf", pivot: "46.3%", rank: 6 },
-  { id: 7,  name: "Wipro Marathon 2025",      date: "2025-09-21", city: "Bengaluru",    km: 5,      time: "0:33:00", effort: "Steady", type: "Road Race", image: "images/medal-wipro.webp", head: "images/medal-wipro-head.webp", metal: "images/medal-wipro-metal.webp", strap: "photo", arms: ["images/medal-wipro-arm-l.webp", "images/medal-wipro-arm-r.webp"], pivot: "41.11%" },
+  { id: 7,  name: "Wipro Marathon 2025",      date: "2025-09-21", city: "Bengaluru",    km: 5,      time: "0:33:00", effort: "Steady", type: "Road Race", image: "images/medal-wipro.webp", head: "images/medal-wipro-head.webp", metal: "images/medal-wipro-metal.webp", strap: "photo", arms: ["images/medal-wipro-arm-l.webp", "images/medal-wipro-arm-r.webp"], pivot: "41.11%", rank: 100 }, // rank 100: Bhavna wants Wipro always last
   { id: 8,  name: "Kodagu HM 2025",           date: "2025-09-07", city: "Coorg",        km: 10.28,  time: "1:19:40", effort: "Steady", type: "Road Race", image: "images/medal-kodagu.webp", head: "images/medal-kodagu-head.webp", metal: "images/medal-kodagu-metal.webp", strap: "photo", arms: ["images/medal-kodagu-arm-l.webp", "images/medal-kodagu-arm-r.webp"], pivot: "36.44%" },
   { id: 9,  name: "BMF Ultra 25K 2026",       date: "2026-06-21", city: "Bengaluru",    km: 24.8,   time: "4:10:29", effort: "All-out", type: "Trail Run", image: "images/medal-bmf25.webp", head: "images/medal-bmf25-head.webp", metal: "images/medal-bmf25-metal.webp", strap: "photo", arms: ["images/medal-bmf25-arm-l.webp", "images/medal-bmf25-arm-r.webp"], pivot: "36.44%" }
 ];
@@ -1382,7 +1383,7 @@ window.STORIES = {
     ],
     finish: {
       title: "Finished!",
-      line: "10.28 km · 7:45 /km · 1h 19m",
+      line: "10 km · 7:45 /km · 1h 19m",
       quip: "Signed up for 5K. Went home with a 10K. No regrets.",
     },
     strava: {
@@ -1429,7 +1430,7 @@ window.STORIES = {
     ],
     finish: {
       title: "Finished!",
-      line: "24.80 km · 428 m · 4h 10m",
+      line: "25 km · 428 m · 4h 10m",
       quip: "Cried: yes. Qualified: also yes. Malnad, see you in November.",
     },
     strava: {
@@ -1472,7 +1473,7 @@ window.STORIES = {
     ],
     finish: {
       title: "Finished!",
-      line: "10.38 km · 217 m · 1h 31m",
+      line: "10 km · 217 m · 1h 31m",
       quip: "First trail run. Lesson learned: trails are not roads.",
     },
     strava: {
@@ -1515,7 +1516,7 @@ window.STORIES = {
     ],
     finish: {
       title: "Finished!",
-      line: "5.49 km · 7:14 /km · 39m 44s",
+      line: "5 km · 7:14 /km · 39m 44s",
       quip: "Papa was only a few seconds behind.",
     },
     strava: {
@@ -1554,7 +1555,7 @@ window.STORIES = {
     ],
     finish: {
       title: "Finished!",
-      line: "21.10 km · 7:01 /km · 2h 28m",
+      line: "21 km · 7:01 /km · 2h 28m",
       quip: "First half marathon. Happy tears.",
     },
     strava: {
@@ -1595,7 +1596,7 @@ window.STORIES = {
     ],
     finish: {
       title: "Finished!",
-      line: "10.21 km · 7:00 /km · 1h 11m",
+      line: "10 km · 7:00 /km · 1h 11m",
       quip: "Legs: happy. Heart: full.",
     },
     strava: {
@@ -1635,7 +1636,7 @@ window.STORIES = {
     ],
     finish: {
       title: "Finished!",
-      line: "15.77 km · 461 m · 2h 16m",
+      line: "16 km · 461 m · 2h 16m",
       quip: "Legs: wrecked. Heart: full.",
     },
     strava: {
@@ -1738,7 +1739,7 @@ window.STORIES = {
     ],
     finish: {
       title: "Finished!",
-      line: "18.27 km · 664 m · 2h 57m",
+      line: "18 km · 664 m · 2h 57m",
       quip: "Legs: wrecked. Heart: full.",
     },
     // Link at the end of the run to the Strava post
@@ -1992,7 +1993,8 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
     return s === 60 ? `${m + 1}:00` : `${m}:${String(s).padStart(2, "0")}`;
   }
 
-  const formatKm = (km) => (Number.isInteger(km) ? String(km) : km.toFixed(1));
+  // distances show as whole kilometres everywhere (Bhavna, 2026-10-13)
+  const formatKm = (km) => String(Math.round(km));
 
   const formatDate = (iso) =>
     new Date(iso + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -3100,14 +3102,14 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
       const stats = el("dl", { class: "exp-stats" },
         data.stats.map((s) => el("div", {}, [
           el("dt", { text: s.label }),
-          el("dd", {}, [s.value, s.unit ? el("span", { text: ` ${s.unit}` }) : null]),
+          el("dd", {}, [s.unit === "km" ? formatKm(parseFloat(s.value)) : s.value, s.unit ? el("span", { text: ` ${s.unit}` }) : null]),
         ]))
       );
       const go = el("button", { type: "button", class: "exp-go", text: "See my experience" });
       const intro = el("div", { class: "exp-intro" }, [stats, go]);
       const layer = el("div", { class: "exp-layer" });
       const km = data.stats.find((s) => s.unit === "km");
-      const hud = el("p", { class: "exp-hud", "aria-hidden": "true" }, [el("strong", { text: "0.0" }), ` / ${km ? km.value : ""} km`]);
+      const hud = el("p", { class: "exp-hud", "aria-hidden": "true" }, [el("strong", { text: "0.0" }), ` / ${km ? formatKm(parseFloat(km.value)) : ""} km`]);
       const f = data.finish || {};
       const finish = el("div", { class: "exp-finish" }, [
         el("h2", { text: f.title || "Finished!" }),
