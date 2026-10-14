@@ -1329,67 +1329,29 @@ a { color: inherit; text-decoration: none; }
 .up-art { width: 100%; max-width: 200px; margin: 0 auto; }
 .up-art svg, .up-thumb svg { display: block; width: 100%; height: auto; overflow: visible; }
 .up-ribbon-edge { stroke: #ff7a2e; }
-.up-hanger { stroke: rgba(255, 122, 46, 0.75); }
+.up-hanger { stroke: rgba(255, 122, 46, 0.7); }
 .up-rim { stroke: #ff8a3d; }
-.up-glow {
-  stroke: #ff6a1a;
-  opacity: 0.7;
-  animation: up-breathe 3.2s ease-in-out infinite;
-}
+.up-glow { stroke: #ff6a1a; opacity: 0.55; }
 .up-q {
-  fill: rgba(255, 255, 255, 0.13);
+  fill: rgba(255, 255, 255, 0.12);
   font: 600 74px/1 "Outfit", var(--body);
 }
-@keyframes up-breathe {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 0.95; }
-}
-.upcoming:is(:hover, :focus-visible) .up-glow { animation-duration: 1.6s; }
-.up-art { transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.5, 1); }
-.upcoming:is(:hover, :focus-visible) .up-art { transform: translateY(-4px); }
-
 .up-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 10px;
-  padding: 4px 10px;
-  border: 1px solid rgba(227, 180, 90, 0.3);
-  border-radius: 999px;
-  color: var(--gold);
-  font: 600 12px/1.2 var(--body);
-  letter-spacing: 0.02em;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font: 500 13px/1.2 var(--body);
   white-space: nowrap;
 }
-.up-pill b { font-weight: 700; }
-.up-pill i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--gold);
-  animation: up-blink 1.6s ease-in-out infinite;
-}
-@keyframes up-blink { 50% { opacity: 0.25; } }
-.up-name {
-  margin: 8px 0 0;
-  font: 600 17px/1.25 var(--body);
-}
-.up-meta {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 500;
-}
+.up-pill b { color: var(--gold); font-weight: 600; }
+.upcoming:hover :is(.medal-name, .medal-meta),
+.upcoming:focus-visible :is(.medal-name, .medal-meta) { opacity: 1; transform: none; }
 /* list row */
 .up-row { cursor: default; }
 .up-thumb { display: block; width: 80px; margin: 0 auto; }
-.upcoming-row .up-pill { margin-top: 8px; padding: 2px 8px; font-size: 11px; }
+.upcoming-row .up-pill { margin-top: 8px; font-size: 11px; }
 .upcoming-row .up-count { color: var(--gold); }
-@media (prefers-reduced-motion: reduce) {
-  .up-glow, .up-pill i { animation: none; }
-}
 @media (max-width: 560px) {
-  .up-pill { font-size: 11px; padding: 3px 8px; }
+  .up-pill { font-size: 12px; }
 }
 
 </style>
@@ -2342,7 +2304,7 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
       <defs>
         <filter id="${uid}g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
         <radialGradient id="${uid}f" cx="50%" cy="38%" r="70%"><stop offset="0" stop-color="#1d1d21"/><stop offset="1" stop-color="#101013"/></radialGradient>
-        <linearGradient id="${uid}r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1310" stop-opacity="0"/><stop offset="0.35" stop-color="#1c1512"/><stop offset="1" stop-color="#141416"/></linearGradient>
+        <linearGradient id="${uid}r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a1a0c"/><stop offset="0.6" stop-color="#24140e"/><stop offset="1" stop-color="#151416"/></linearGradient>
       </defs>
       <g class="up-ribbon">
         <path d="M14 0 H62 L112 88 H72 Z M138 0 H186 L128 88 H88 Z" fill="url(#${uid}r)"/>
@@ -2357,11 +2319,12 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
     </svg>`;
   })();
   function upcomingCard(u) {
+    // quiet like the medals: only the countdown shows; name and date on hover
     return el("div", { class: "upcoming", tabindex: "0", "aria-label": `Next race: ${u.full}, ${formatDate(u.date)}, ${u.city}. ${countdown(u)}.` }, [
       el("div", { class: "up-art", html: MYSTERY_SVG }),
-      el("span", { class: "up-pill" }, [el("i"), "Up next · ", el("b", { class: "up-count", text: countdown(u) })]),
-      el("h2", { class: "up-name", text: u.name }),
-      el("p", { class: "up-meta", text: `${formatKm(u.km)} km · ${new Date(u.date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })} · ${u.city}` }),
+      el("p", { class: "up-pill" }, ["Up next · ", el("b", { class: "up-count", text: countdown(u) })]),
+      el("h2", { class: "medal-name", text: u.full }),
+      el("p", { class: "medal-meta", text: `${formatKm(u.km)} km · ${new Date(u.date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` }),
     ]);
   }
   function upcomingRow(u) {
@@ -2379,7 +2342,7 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
         ]),
         el("div", { class: "row-side" }, [
           el("span", { class: "up-thumb", html: MYSTERY_SVG }),
-          el("span", { class: "up-pill" }, [el("i"), "Up next"]),
+          el("span", { class: "up-pill" }, ["Up next"]),
         ]),
       ]),
     ]);
