@@ -77,7 +77,7 @@ a { color: inherit; text-decoration: none; }
   font-weight: 400;
   font-size: clamp(50px, 14vw, 116px);
   line-height: 0.95;
-  letter-spacing: 0.01em;
+  letter-spacing: 0; /* keeps the pixel build on the font's grid */
   white-space: nowrap;
   color: var(--ink, #f4f2ee);
 }
@@ -1289,6 +1289,13 @@ a { color: inherit; text-decoration: none; }
 .is-back > .fold-shade { background: linear-gradient(rgba(255, 250, 240, 0), rgba(70, 50, 20, 0.6)); }
 .fold-cast { background: linear-gradient(rgba(40, 25, 10, 0.75), rgba(40, 25, 10, 0) 70%); }
 
+
+/* Pixel build of the heading: the canvas draws the pixels, the real text
+   hides while it plays and takes over at the end */
+.title { position: relative; }
+.title-pixels { position: absolute; left: 0; top: 0; pointer-events: none; opacity: 0; transition: opacity 0.18s ease; }
+.title.is-pixeling { color: transparent; }
+.title:not(.is-pixeling) { transition: color 0.18s ease; }
 
 </style>
 
@@ -3946,6 +3953,122 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
   window.addEventListener("hashchange", route);
 
   renderSummary();
+
+  // ---------- title: pixels fade in and settle into the words ----------
+  // Bhavna 2026-10-14: the heading (Jersey 15, a pixel font) builds itself
+  // from its own pixels on load, and dissolves/rebuilds on hover.
+  function pixelTitle(h1) {
+    if (!h1 || reduceMotion.matches) return;
+    let canvas = null, raf = 0, cells = [], busy = false;
+    const ink = getComputedStyle(h1).color; // read before the text is hidden
+
+    const sample = () => {
+      const cs = getComputedStyle(h1);
+      const size = parseFloat(cs.fontSize);
+      const rect = h1.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const font = `${cs.fontWeight} ${size}px ${cs.fontFamily}`;
+      const ls = parseFloat(cs.letterSpacing) || 0;
+      const text = h1.textContent;
+      const W = Math.ceil(rect.width), H = Math.ceil(rect.height);
+      const off = document.createElement("canvas");
+      off.width = W; off.height = H;
+      const o = off.getContext("2d", { willReadFrequently: true });
+      o.font = font;
+      if ("letterSpacing" in o) o.letterSpacing = `${ls}px`;
+      o.textBaseline = "alphabetic";
+      const mt = o.measureText(text);
+      const asc = mt.fontBoundingBoxAscent ?? size * 0.8, desc = mt.fontBoundingBoxDescent ?? size * 0.2;
+      const lh = parseFloat(cs.lineHeight) || size;
+      const base = (lh - (asc + desc)) / 2 + asc;
+      o.fillStyle = "#000";
+      o.fillText(text, 0, base);
+      const data = o.getImageData(0, 0, W, H).data;
+      const u = size / 27; // Jersey 15's pixel grid: 27 pixels to the em (stems are 3)
+      cells = [];
+      for (let y = base - u / 2; y > 0; y -= u) collect(y);
+      for (let y = base + u / 2; y < H; y += u) collect(y);
+      function collect(y) {
+        for (let x = u / 2; x < W; x += u) {
+          // average coverage over the cell so thin strokes snap the right way
+          let a = 0;
+          for (const fy of [-0.25, 0, 0.25]) for (const fx of [-0.25, 0, 0.25]) {
+            const py = Math.round(y + fy * u), px = Math.round(x + fx * u);
+            if (py >= 0 && py < H && px >= 0 && px < W) a += data[(py * W + px) * 4 + 3];
+          }
+          if (a / 9 > 128) cells.push({ x: x - u / 2, y: y - u / 2, r: Math.random() });
+        }
+      }
+      if (!canvas) {
+        canvas = document.createElement("canvas");
+        canvas.className = "title-pixels";
+        canvas.setAttribute("aria-hidden", "true");
+        h1.append(canvas);
+      }
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      canvas.style.width = W + "px"; canvas.style.height = H + "px";
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx, W, H, u, color: ink };
+    };
+
+    // mode "in": scattered pixels fade in and drift into place, then the
+    // real text takes over. mode "flicker": pixels fade out and back in.
+    const play = (mode) => {
+      if (busy) return;
+      busy = true;
+      cancelAnimationFrame(raf);
+      const { ctx, W, H, u, color } = sample();
+      const dur = mode === "in" ? 1300 : 900;
+      const t0 = performance.now();
+      h1.classList.add("is-pixeling");
+      canvas.style.opacity = "1";
+      const ease = (t) => 1 - Math.pow(1 - t, 3);
+      const frame = (now) => {
+        const t = (now - t0) / dur;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = color;
+        for (const c of cells) {
+          // each pixel gets its own window; left side leads slightly
+          const start = (c.x / W) * 0.25 + c.r * 0.45;
+          let p = Math.min(1, Math.max(0, (t - start) / 0.3));
+          let a, dx = 0, dy = 0, s = 1;
+          if (mode === "in") {
+            const e = ease(p);
+            a = e;
+            dy = (1 - e) * (c.r - 0.5) * u * 10;
+            dx = (1 - e) * (c.r * 7 % 1 - 0.5) * u * 7;
+            s = 0.4 + 0.6 * e;
+          } else {
+            // out then back in
+            const q = p < 0.5 ? 1 - p * 2 : (p - 0.5) * 2;
+            a = 0.15 + 0.85 * ease(q);
+            s = 0.55 + 0.45 * ease(q);
+          }
+          if (a <= 0.01) continue;
+          ctx.globalAlpha = a;
+          const w = u * s;
+          ctx.fillRect(c.x + dx + (u - w) / 2, c.y + dy + (u - w) / 2, w + 0.5, w + 0.5);
+        }
+        ctx.globalAlpha = 1;
+        if (t < 1) raf = requestAnimationFrame(frame);
+        else {
+          h1.classList.remove("is-pixeling");
+          canvas.style.opacity = "0";
+          busy = false;
+        }
+      };
+      raf = requestAnimationFrame(frame);
+    };
+
+    const ready = document.fonts ? document.fonts.load(`400 80px "Jersey 15"`).then(() => document.fonts.ready) : Promise.resolve();
+    h1.classList.add("is-pixeling");
+    ready.then(() => play("in"), () => h1.classList.remove("is-pixeling"));
+    // safety: never leave the heading hidden
+    setTimeout(() => { if (!busy) h1.classList.remove("is-pixeling"); }, 4000);
+    if (window.matchMedia("(hover: hover)").matches) h1.addEventListener("mouseenter", () => play("flicker"));
+  }
+  pixelTitle(document.querySelector("h1.title"));
 
   // ---------- title: letters made of running track ----------
   // Each letter is one thick ribbon of track (two for T and A) with a white
