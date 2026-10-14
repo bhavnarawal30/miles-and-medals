@@ -585,9 +585,9 @@ a { color: inherit; text-decoration: none; }
 .exp-close:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .exp.is-live .exp-close { opacity: 1; visibility: visible; }
 @media (max-width: 600px) {
-  /* phones (Bhavna 2026-10-14): the route card on top, full width; under it
-     the envelope (races with a write-up, no tile), then the four photos as a
-     fanned row of tilted prints.
+  /* phones (Bhavna 2026-10-14): the four photos on top as a fanned row of
+     tilted prints, then the route card full width, then the envelope (races
+     with a write-up, no tile).
      Desktop keeps photos either side of the card. */
   .exp-stage {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -603,7 +603,7 @@ a { color: inherit; text-decoration: none; }
     order: 0;
     aspect-ratio: auto;
     height: 130px;
-    margin-top: 26px;
+    margin-top: 30px;
     padding: 0 0 6px;
     border: 0;
     background: none;
@@ -612,7 +612,7 @@ a { color: inherit; text-decoration: none; }
   /* photos: a fanned row of tilted, white-edged prints overlapping a little
      (Bhavna's reference) */
   .exp-photo {
-    order: 1;
+    order: -2;
     flex: none;
     width: 112%;
     margin: 14px 0 26px -6%;
