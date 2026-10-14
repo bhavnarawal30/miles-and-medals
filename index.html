@@ -1361,9 +1361,16 @@ a { color: inherit; text-decoration: none; }
 }
 /* the 9th grid spot (desktop and phones): a medal-sized box, countdown
    centred in it and a little faded; name and date below on hover */
-.up-box { width: 100%; max-width: 200px; aspect-ratio: 4 / 5; display: grid; place-items: center; }
-.up-box .up-pill { margin: 0; opacity: 0.55; transition: opacity 0.3s ease; }
-.upcoming:is(:hover, :focus-visible) .up-box .up-pill { opacity: 0.85; }
+.up-box { width: 100%; max-width: 200px; aspect-ratio: 4 / 5; display: grid; place-items: center; container-type: inline-size; overflow: hidden; }
+.up-box .up-pill { margin: 0; opacity: 0.72; transition: opacity 0.3s ease; }
+.upcoming:is(:hover, :focus-visible) .up-box .up-pill { opacity: 0.95; }
+/* sized to the box so it always fits inside, phone or desktop */
+.up-box .up-clock { gap: 1cqw; }
+.up-box .up-unit { min-width: 0; }
+.up-box .up-unit b { font-size: min(22px, 12cqw); }
+.up-box .up-sep { font-size: min(19px, 10cqw); }
+.up-box .up-unit small { font-size: min(9px, 5cqw); }
+.up-box .up-label { font-size: min(11px, 6cqw); }
 .up-pill {
   display: flex;
   flex-direction: column;
