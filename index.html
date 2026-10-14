@@ -1317,6 +1317,91 @@ a { color: inherit; text-decoration: none; }
 .is-back > .fold-shade { background: linear-gradient(rgba(255, 250, 240, 0), rgba(70, 50, 20, 0.6)); }
 .fold-cast { background: linear-gradient(rgba(40, 25, 10, 0.75), rgba(40, 25, 10, 0) 70%); }
 
+/* ---------- Next race teaser (VDHM): an empty spot waiting for its medal ---------- */
+.upcoming {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  outline: none;
+  cursor: default;
+}
+.up-art { width: 100%; max-width: 200px; margin: 0 auto; }
+.up-art svg, .up-thumb svg { display: block; width: 100%; height: auto; overflow: visible; }
+.up-ribbon { stroke: rgba(227, 180, 90, 0.35); }
+.up-ring {
+  stroke: var(--gold);
+  opacity: 0.75;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: up-spin 24s linear infinite;
+}
+.up-inner { stroke: rgba(227, 180, 90, 0.18); }
+.up-glow {
+  fill: rgba(227, 180, 90, 0.07);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: up-breathe 3.2s ease-in-out infinite;
+}
+.up-q {
+  fill: var(--gold);
+  font: italic 900 54px/1 var(--display);
+  opacity: 0.9;
+}
+@keyframes up-spin { to { transform: rotate(360deg); } }
+@keyframes up-breathe {
+  0%, 100% { transform: scale(0.94); fill: rgba(227, 180, 90, 0.05); }
+  50% { transform: scale(1.04); fill: rgba(227, 180, 90, 0.13); }
+}
+.upcoming:is(:hover, :focus-visible) .up-ring { opacity: 1; animation-duration: 6s; }
+.upcoming:is(:hover, :focus-visible) .up-ribbon { stroke: rgba(227, 180, 90, 0.6); }
+.up-art { transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.5, 1); }
+.upcoming:is(:hover, :focus-visible) .up-art { transform: translateY(-4px); }
+
+.up-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 4px 10px;
+  border: 1px solid rgba(227, 180, 90, 0.3);
+  border-radius: 999px;
+  color: var(--gold);
+  font: 600 12px/1.2 var(--body);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.up-pill b { font-weight: 700; }
+.up-pill i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: up-blink 1.6s ease-in-out infinite;
+}
+@keyframes up-blink { 50% { opacity: 0.25; } }
+.up-name {
+  margin: 8px 0 0;
+  font: 600 17px/1.25 var(--body);
+}
+.up-meta {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+/* list row */
+.up-row { cursor: default; }
+.up-thumb { display: block; width: 80px; margin: 0 auto; }
+.upcoming-row .up-pill { margin-top: 8px; padding: 2px 8px; font-size: 11px; }
+.upcoming-row .up-count { color: var(--gold); }
+@media (prefers-reduced-motion: reduce) {
+  .up-ring, .up-glow, .up-pill i { animation: none; }
+}
+@media (max-width: 560px) {
+  .up-pill { font-size: 11px; padding: 3px 8px; }
+}
+
 </style>
 
   <div class="page">
@@ -1395,6 +1480,11 @@ window.MEDALS = [
   { id: 8,  name: "Kodagu HM",           date: "2025-09-07", city: "Coorg",        km: 10.28,  time: "1:19:40", effort: "Steady", type: "Road Race", image: "images/medal-kodagu.webp", head: "images/medal-kodagu-head.webp", metal: "images/medal-kodagu-metal.webp", strap: "photo", arms: ["images/medal-kodagu-arm-l.webp", "images/medal-kodagu-arm-r.webp"], pivot: "36.44%" },
   { id: 9,  name: "BMF Ultra 25K",       date: "2026-06-21", city: "Bengaluru",    km: 24.8,   time: "4:10:29", effort: "All-out", type: "Trail Race", image: "images/medal-bmf25.webp", head: "images/medal-bmf25-head.webp", metal: "images/medal-bmf25-metal.webp", strap: "photo", arms: ["images/medal-bmf25-arm-l.webp", "images/medal-bmf25-arm-r.webp"], pivot: "36.44%" }
 ];
+
+// Next race on the calendar, shown as a teaser after the medals (Bhavna
+// 2026-10-14). Not counted in the stats. Move it into MEDALS once it's run.
+window.UPCOMING = { name: "VDHM", full: "Vedanta Delhi Half Marathon", date: "2026-10-18", start: "2026-10-18T06:00:00+05:30", city: "Delhi", km: 21.1, type: "Road Race" };
+
 
 </script>
 <script>
@@ -2066,6 +2156,7 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
       if (k === "class") node.className = v;
       else if (k === "text") node.textContent = v;
       else if (k === "style") node.style.cssText = v;
+      else if (k === "html") node.innerHTML = v;
       else node.setAttribute(k, v);
     }
     for (const c of [].concat(children)) if (c) node.append(c);
@@ -2232,8 +2323,58 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
     return card;
   }
 
+  // ---------- next race teaser (VDHM) ----------
+  // A medal-shaped empty spot: dashed ribbon and an outlined medal with a
+  // question mark, slowly breathing, plus a countdown to race day.
+  const upcoming = window.UPCOMING || null;
+  const countdown = (u) => {
+    const ms = new Date(u.start) - Date.now();
+    const days = Math.ceil(ms / 86400000);
+    if (ms > 0 && days > 1) return `${days} days to go`;
+    if (ms > 0) return "Tomorrow!";
+    if (ms > -86400000) return "Race day!";
+    return "Medal incoming";
+  };
+  const MYSTERY_SVG = `<svg viewBox="0 0 200 250" aria-hidden="true">
+      <g class="up-ribbon" fill="none" stroke-width="2" stroke-dasharray="5 6" stroke-linecap="round">
+        <path d="M70 2 L96 112 M130 2 L104 112"/><path d="M48 2 L84 116 M152 2 L116 116"/>
+      </g>
+      <circle class="up-glow" cx="100" cy="168" r="62"/>
+      <circle class="up-ring" cx="100" cy="168" r="58" fill="none" stroke-width="2.4" stroke-dasharray="7 7"/>
+      <circle cx="100" cy="168" r="44" fill="none" stroke-width="1" class="up-inner"/>
+      <text class="up-q" x="100" y="186" text-anchor="middle">?</text>
+    </svg>`;
+  function upcomingCard(u) {
+    return el("div", { class: "upcoming", tabindex: "0", "aria-label": `Next race: ${u.full}, ${formatDate(u.date)}, ${u.city}. ${countdown(u)}.` }, [
+      el("div", { class: "up-art", html: MYSTERY_SVG }),
+      el("span", { class: "up-pill" }, [el("i"), "Up next · ", el("b", { class: "up-count", text: countdown(u) })]),
+      el("h2", { class: "up-name", text: u.name }),
+      el("p", { class: "up-meta", text: `${formatKm(u.km)} km · ${new Date(u.date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })} · ${u.city}` }),
+    ]);
+  }
+  function upcomingRow(u) {
+    return el("li", { class: "upcoming-row" }, [
+      el("div", { class: "row-link up-row" }, [
+        el("div", { class: "row-main" }, [
+          el("div", {}, [
+            el("h2", { class: "row-name", text: u.full }),
+            el("p", { class: "row-sub", text: `${formatDate(u.date)} · ${u.city}` }),
+          ]),
+          el("dl", { class: "row-stats" }, [
+            el("div", {}, [el("dt", { text: "Distance" }), withUnit("dd", formatKm(u.km), "km")]),
+            el("div", {}, [el("dt", { text: "Countdown" }), el("dd", { class: "up-count", text: countdown(u) })]),
+          ]),
+        ]),
+        el("div", { class: "row-side" }, [
+          el("span", { class: "up-thumb", html: MYSTERY_SVG }),
+          el("span", { class: "up-pill" }, [el("i"), "Up next"]),
+        ]),
+      ]),
+    ]);
+  }
+
   function renderGrid() {
-    grid.replaceChildren(...medals.map(medalCard));
+    grid.replaceChildren(...medals.map(medalCard), ...(upcoming ? [upcomingCard(upcoming)] : []));
     hangOnScroll();
   }
 
@@ -2795,7 +2936,7 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
   }
 
   function renderList() {
-    rows.replaceChildren(...medals.map(listRow));
+    rows.replaceChildren(...medals.map(listRow), ...(upcoming ? [upcomingRow(upcoming)] : []));
   }
 
   // ---------- race page (placeholder for memories, photos and stories) ----------
