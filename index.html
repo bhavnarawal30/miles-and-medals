@@ -3956,7 +3956,7 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
 
   // ---------- title: pixels fade in and settle into the words ----------
   // Bhavna 2026-10-14: the heading (Jersey 15, a pixel font) builds itself
-  // from its own pixels on load, and dissolves/rebuilds on hover.
+  // from its own pixels, once per visit or refresh.
   function pixelTitle(h1) {
     if (!h1 || reduceMotion.matches) return;
     let canvas = null, raf = 0, cells = [], busy = false;
@@ -4005,50 +4005,45 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
         canvas.setAttribute("aria-hidden", "true");
         h1.append(canvas);
       }
-      canvas.width = W * dpr; canvas.height = H * dpr;
-      canvas.style.width = W + "px"; canvas.style.height = H + "px";
+      // the canvas reaches above the heading so pixels can fall in from the top
+      const PAD = Math.ceil(u * 34);
+      canvas.width = W * dpr; canvas.height = (H + PAD) * dpr;
+      canvas.style.width = W + "px"; canvas.style.height = H + PAD + "px";
+      canvas.style.top = -PAD + "px";
       const ctx = canvas.getContext("2d");
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      return { ctx, W, H, u, color: ink };
+      ctx.setTransform(dpr, 0, 0, dpr, 0, PAD * dpr);
+      return { ctx, W, H, u, PAD, color: ink };
     };
 
-    // mode "in": scattered pixels fade in and drift into place, then the
-    // real text takes over. mode "flicker": pixels fade out and back in.
-    const play = (mode) => {
+    // Plays once per page load: pixels drop in from the top, then the real
+    // text takes over (Bhavna: no replay on hover).
+    const play = () => {
       if (busy) return;
       busy = true;
       cancelAnimationFrame(raf);
-      const { ctx, W, H, u, color } = sample();
-      const dur = mode === "in" ? 1300 : 900;
+      const { ctx, W, H, u, PAD, color } = sample();
+      const dur = 1700;
       const t0 = performance.now();
       h1.classList.add("is-pixeling");
       canvas.style.opacity = "1";
       const ease = (t) => 1 - Math.pow(1 - t, 3);
       const frame = (now) => {
         const t = (now - t0) / dur;
-        ctx.clearRect(0, 0, W, H);
+        ctx.clearRect(0, -PAD, W, H + PAD);
         ctx.fillStyle = color;
         for (const c of cells) {
           // each pixel gets its own window; left side leads slightly
-          const start = (c.x / W) * 0.25 + c.r * 0.45;
-          let p = Math.min(1, Math.max(0, (t - start) / 0.3));
-          let a, dx = 0, dy = 0, s = 1;
-          if (mode === "in") {
-            const e = ease(p);
-            a = e;
-            dy = (1 - e) * (c.r - 0.5) * u * 10;
-            dx = (1 - e) * (c.r * 7 % 1 - 0.5) * u * 7;
-            s = 0.4 + 0.6 * e;
-          } else {
-            // out then back in
-            const q = p < 0.5 ? 1 - p * 2 : (p - 0.5) * 2;
-            a = 0.15 + 0.85 * ease(q);
-            s = 0.55 + 0.45 * ease(q);
-          }
-          if (a <= 0.01) continue;
+          const start = (c.x / W) * 0.35 + c.r * 0.3;
+          const p = Math.min(1, Math.max(0, (t - start) / 0.35));
+          // big, faded pixels fall from above, shrink to size and settle
+          const e = ease(p);
+          const a = 0.15 + 0.85 * e;
+          const dy = -(1 - e) * (u * 14 + c.r * u * 18);
+          const s = 1 + (1 - e) * 1.6;
+          if (p <= 0) continue;
           ctx.globalAlpha = a;
           const w = u * s;
-          ctx.fillRect(c.x + dx + (u - w) / 2, c.y + dy + (u - w) / 2, w + 0.5, w + 0.5);
+          ctx.fillRect(c.x + (u - w) / 2, c.y + dy + (u - w) / 2, w + 0.5, w + 0.5);
         }
         ctx.globalAlpha = 1;
         if (t < 1) raf = requestAnimationFrame(frame);
@@ -4063,10 +4058,9 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
 
     const ready = document.fonts ? document.fonts.load(`400 80px "Jersey 15"`).then(() => document.fonts.ready) : Promise.resolve();
     h1.classList.add("is-pixeling");
-    ready.then(() => play("in"), () => h1.classList.remove("is-pixeling"));
+    ready.then(() => play(), () => h1.classList.remove("is-pixeling"));
     // safety: never leave the heading hidden
     setTimeout(() => { if (!busy) h1.classList.remove("is-pixeling"); }, 4000);
-    if (window.matchMedia("(hover: hover)").matches) h1.addEventListener("mouseenter", () => play("flicker"));
   }
   pixelTitle(document.querySelector("h1.title"));
 
