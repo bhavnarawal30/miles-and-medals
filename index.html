@@ -1334,8 +1334,11 @@ a { color: inherit; text-decoration: none; }
   outline: none;
   cursor: default;
 }
-/* the 9th grid spot (desktop and phones), centred in its cell */
-.upcoming { justify-content: center; align-self: center; padding: 16px 0; }
+/* the 9th grid spot (desktop and phones): a medal-sized box, countdown
+   centred in it and a little faded; name and date below on hover */
+.up-box { width: 100%; max-width: 200px; aspect-ratio: 4 / 5; display: grid; place-items: center; }
+.up-box .up-pill { margin: 0; opacity: 0.55; transition: opacity 0.3s ease; }
+.upcoming:is(:hover, :focus-visible) .up-box .up-pill { opacity: 0.85; }
 .up-pill {
   display: flex;
   flex-direction: column;
@@ -2318,7 +2321,8 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
   function upcomingCard(u) {
     // no medal yet: just the countdown to the next one; details on hover
     return el("div", { class: "upcoming", tabindex: "0", "aria-label": `Next medal: ${u.full}, ${formatDate(u.date)}, ${u.city}` }, [
-      el("p", { class: "up-pill" }, [el("span", { class: "up-label", text: "Next medal in" }), clock(u)]),
+      // a box the size of a medal, so it lines up with its neighbours
+      el("div", { class: "up-box" }, [el("p", { class: "up-pill" }, [el("span", { class: "up-label", text: "Next medal in" }), clock(u)])]),
       el("h2", { class: "medal-name", text: u.name }),
       el("p", { class: "medal-meta", text: upMeta(u) }),
     ]);
