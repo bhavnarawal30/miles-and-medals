@@ -1328,33 +1328,23 @@ a { color: inherit; text-decoration: none; }
 }
 .up-art { width: 100%; max-width: 200px; margin: 0 auto; }
 .up-art svg, .up-thumb svg { display: block; width: 100%; height: auto; overflow: visible; }
-.up-ribbon { stroke: rgba(227, 180, 90, 0.35); }
-.up-ring {
-  stroke: var(--gold);
-  opacity: 0.75;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: up-spin 24s linear infinite;
-}
-.up-inner { stroke: rgba(227, 180, 90, 0.18); }
+.up-ribbon-edge { stroke: #ff7a2e; }
+.up-hanger { stroke: rgba(255, 122, 46, 0.75); }
+.up-rim { stroke: #ff8a3d; }
 .up-glow {
-  fill: rgba(227, 180, 90, 0.07);
-  transform-box: fill-box;
-  transform-origin: center;
+  stroke: #ff6a1a;
+  opacity: 0.7;
   animation: up-breathe 3.2s ease-in-out infinite;
 }
 .up-q {
-  fill: var(--gold);
-  font: italic 900 54px/1 var(--display);
-  opacity: 0.9;
+  fill: rgba(255, 255, 255, 0.13);
+  font: 600 74px/1 "Outfit", var(--body);
 }
-@keyframes up-spin { to { transform: rotate(360deg); } }
 @keyframes up-breathe {
-  0%, 100% { transform: scale(0.94); fill: rgba(227, 180, 90, 0.05); }
-  50% { transform: scale(1.04); fill: rgba(227, 180, 90, 0.13); }
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.95; }
 }
-.upcoming:is(:hover, :focus-visible) .up-ring { opacity: 1; animation-duration: 6s; }
-.upcoming:is(:hover, :focus-visible) .up-ribbon { stroke: rgba(227, 180, 90, 0.6); }
+.upcoming:is(:hover, :focus-visible) .up-glow { animation-duration: 1.6s; }
 .up-art { transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.5, 1); }
 .upcoming:is(:hover, :focus-visible) .up-art { transform: translateY(-4px); }
 
@@ -1396,7 +1386,7 @@ a { color: inherit; text-decoration: none; }
 .upcoming-row .up-pill { margin-top: 8px; padding: 2px 8px; font-size: 11px; }
 .upcoming-row .up-count { color: var(--gold); }
 @media (prefers-reduced-motion: reduce) {
-  .up-ring, .up-glow, .up-pill i { animation: none; }
+  .up-glow, .up-pill i { animation: none; }
 }
 @media (max-width: 560px) {
   .up-pill { font-size: 11px; padding: 3px 8px; }
@@ -2335,15 +2325,37 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
     if (ms > -86400000) return "Race day!";
     return "Medal incoming";
   };
-  const MYSTERY_SVG = `<svg viewBox="0 0 200 250" aria-hidden="true">
-      <g class="up-ribbon" fill="none" stroke-width="2" stroke-dasharray="5 6" stroke-linecap="round">
-        <path d="M70 2 L96 112 M130 2 L104 112"/><path d="M48 2 L84 116 M152 2 L116 116"/>
+  // Dark medal silhouette (Bhavna's reference): scalloped edge with an
+  // orange glow on the rim, a wide V ribbon lit along its edges, a hanger
+  // on top and a faint question mark.
+  const MYSTERY_SVG = (() => {
+    const cx = 100, cy = 172, R = 74, n = 22, a = 2.6;
+    let d = "";
+    for (let k = 0; k <= n * 8; k++) {
+      const t = (k / (n * 8)) * Math.PI * 2;
+      const r = R + a * Math.cos(t * n);
+      d += `${k ? "L" : "M"}${(cx + r * Math.sin(t)).toFixed(1)} ${(cy - r * Math.cos(t)).toFixed(1)}`;
+    }
+    d += "Z";
+    const uid = "mys" + Math.random().toString(36).slice(2, 7);
+    return `<svg viewBox="0 0 200 262" aria-hidden="true">
+      <defs>
+        <filter id="${uid}g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
+        <radialGradient id="${uid}f" cx="50%" cy="38%" r="70%"><stop offset="0" stop-color="#1d1d21"/><stop offset="1" stop-color="#101013"/></radialGradient>
+        <linearGradient id="${uid}r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1310" stop-opacity="0"/><stop offset="0.35" stop-color="#1c1512"/><stop offset="1" stop-color="#141416"/></linearGradient>
+      </defs>
+      <g class="up-ribbon">
+        <path d="M14 0 H62 L112 88 H72 Z M138 0 H186 L128 88 H88 Z" fill="url(#${uid}r)"/>
+        <path class="up-ribbon-edge" d="M14 0 L72 88 M62 0 L112 88 M186 0 L128 88 M138 0 L88 88" fill="none" stroke-width="1.6" filter="url(#${uid}g)"/>
+        <path class="up-ribbon-edge" d="M14 0 L72 88 M62 0 L112 88 M186 0 L128 88 M138 0 L88 88" fill="none" stroke-width="0.9" opacity="0.7"/>
       </g>
-      <circle class="up-glow" cx="100" cy="168" r="62"/>
-      <circle class="up-ring" cx="100" cy="168" r="58" fill="none" stroke-width="2.4" stroke-dasharray="7 7"/>
-      <circle cx="100" cy="168" r="44" fill="none" stroke-width="1" class="up-inner"/>
-      <text class="up-q" x="100" y="186" text-anchor="middle">?</text>
+      <rect class="up-hanger" x="80" y="74" width="40" height="28" rx="6" fill="#141417" stroke-width="1.4"/>
+      <rect x="88" y="80" width="24" height="7" rx="3.5" fill="#060607"/>
+      <path class="up-glow" d="${d}" fill="none" stroke-width="7" filter="url(#${uid}g)"/>
+      <path d="${d}" fill="url(#${uid}f)" class="up-rim" stroke-width="1.6"/>
+      <text class="up-q" x="${cx}" y="${cy + 22}" text-anchor="middle">?</text>
     </svg>`;
+  })();
   function upcomingCard(u) {
     return el("div", { class: "upcoming", tabindex: "0", "aria-label": `Next race: ${u.full}, ${formatDate(u.date)}, ${u.city}. ${countdown(u)}.` }, [
       el("div", { class: "up-art", html: MYSTERY_SVG }),
