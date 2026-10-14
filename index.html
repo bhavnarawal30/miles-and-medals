@@ -1317,7 +1317,7 @@ a { color: inherit; text-decoration: none; }
 .is-back > .fold-shade { background: linear-gradient(rgba(255, 250, 240, 0), rgba(70, 50, 20, 0.6)); }
 .fold-cast { background: linear-gradient(rgba(40, 25, 10, 0.75), rgba(40, 25, 10, 0) 70%); }
 
-/* ---------- Next race teaser (VDHM): an empty spot waiting for its medal ---------- */
+/* ---------- Next race teaser (VDHM): her mystery medal + live countdown ---------- */
 .upcoming {
   display: flex;
   flex-direction: column;
@@ -1326,33 +1326,39 @@ a { color: inherit; text-decoration: none; }
   outline: none;
   cursor: default;
 }
-.up-art { width: 100%; max-width: 200px; margin: 0 auto; }
-.up-art svg, .up-thumb svg { display: block; width: 100%; height: auto; overflow: visible; }
-.up-ribbon-edge { stroke: #ff7a2e; }
-.up-hanger { stroke: rgba(255, 122, 46, 0.7); }
-.up-rim { stroke: #ff8a3d; }
-.up-glow { stroke: #ff6a1a; opacity: 0.55; }
-.up-q {
-  fill: rgba(255, 255, 255, 0.12);
-  font: 600 74px/1 "Outfit", var(--body);
-}
+.up-art { width: 100%; max-width: 200px; margin: 0 auto; aspect-ratio: 4 / 5; display: grid; place-items: end center; }
+.up-art img { width: 100%; height: auto; filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.55)); transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.5, 1); transform-origin: 50% 0; }
+.upcoming:is(:hover, :focus-visible) .up-art img { transform: rotate(-2deg) scale(1.03); }
 .up-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   margin: 10px 0 0;
-  color: var(--muted);
-  font: 500 13px/1.2 var(--body);
-  white-space: nowrap;
 }
-.up-pill b { color: var(--gold); font-weight: 600; }
+.up-label {
+  color: var(--muted);
+  font: 600 11px/1 var(--body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.up-clock { display: inline-flex; align-items: flex-start; gap: 3px; }
+.up-unit { display: flex; flex-direction: column; align-items: center; min-width: 26px; }
+.up-unit b {
+  color: var(--gold);
+  font: 600 20px/1.1 "Outfit", var(--body);
+  font-variant-numeric: tabular-nums;
+}
+.up-unit small { margin-top: 2px; color: var(--muted); font: 500 9px/1 var(--body); letter-spacing: 0.1em; }
+.up-sep { color: var(--muted); font: 600 18px/1.15 "Outfit", var(--body); font-style: normal; opacity: 0.6; }
 .upcoming:hover :is(.medal-name, .medal-meta),
 .upcoming:focus-visible :is(.medal-name, .medal-meta) { opacity: 1; transform: none; }
 /* list row */
 .up-row { cursor: default; }
-.up-thumb { display: block; width: 80px; margin: 0 auto; }
-.upcoming-row .up-pill { margin-top: 8px; font-size: 11px; }
-.upcoming-row .up-count { color: var(--gold); }
-@media (max-width: 560px) {
-  .up-pill { font-size: 12px; }
-}
+.upcoming-row .up-pill { margin-top: 8px; }
+.upcoming-row .up-unit b { font-size: 16px; }
+.upcoming-row .up-sep { font-size: 14px; }
+.upcoming-row dd .up-clock { vertical-align: top; }
 
 </style>
 
@@ -1435,7 +1441,7 @@ window.MEDALS = [
 
 // Next race on the calendar, shown as a teaser after the medals (Bhavna
 // 2026-10-14). Not counted in the stats. Move it into MEDALS once it's run.
-window.UPCOMING = { name: "VDHM", full: "Vedanta Delhi Half Marathon", date: "2026-10-18", start: "2026-10-18T06:00:00+05:30", city: "Delhi", km: 21.1, type: "Road Race" };
+window.UPCOMING = { name: "Vedanta HM Delhi", full: "Vedanta Delhi Half Marathon", image: "images/medal-vdhm.webp", date: "2026-10-18", start: "2026-10-18T06:00:00+05:30", city: "Delhi", km: 21.1, type: "Road Race" };
 
 
 </script>
@@ -2279,52 +2285,36 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
   // A medal-shaped empty spot: dashed ribbon and an outlined medal with a
   // question mark, slowly breathing, plus a countdown to race day.
   const upcoming = window.UPCOMING || null;
-  const countdown = (u) => {
-    const ms = new Date(u.start) - Date.now();
-    const days = Math.ceil(ms / 86400000);
-    if (ms > 0 && days > 1) return `${days} days to go`;
-    if (ms > 0) return "Tomorrow!";
-    if (ms > -86400000) return "Race day!";
-    return "Medal incoming";
+  // live countdown to the start gun, as DD:HH:MM:SS (Bhavna 2026-10-14)
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const countdownParts = (u) => {
+    let t = Math.max(0, Math.floor((new Date(u.start) - Date.now()) / 1000));
+    const d = Math.floor(t / 86400); t -= d * 86400;
+    const h = Math.floor(t / 3600); t -= h * 3600;
+    const m = Math.floor(t / 60);
+    return [d, h, m, t - m * 60].map(pad2);
   };
-  // Dark medal silhouette (Bhavna's reference): scalloped edge with an
-  // orange glow on the rim, a wide V ribbon lit along its edges, a hanger
-  // on top and a faint question mark.
-  const MYSTERY_SVG = (() => {
-    const cx = 100, cy = 172, R = 74, n = 22, a = 2.6;
-    let d = "";
-    for (let k = 0; k <= n * 8; k++) {
-      const t = (k / (n * 8)) * Math.PI * 2;
-      const r = R + a * Math.cos(t * n);
-      d += `${k ? "L" : "M"}${(cx + r * Math.sin(t)).toFixed(1)} ${(cy - r * Math.cos(t)).toFixed(1)}`;
-    }
-    d += "Z";
-    const uid = "mys" + Math.random().toString(36).slice(2, 7);
-    return `<svg viewBox="0 0 200 262" aria-hidden="true">
-      <defs>
-        <filter id="${uid}g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
-        <radialGradient id="${uid}f" cx="50%" cy="38%" r="70%"><stop offset="0" stop-color="#1d1d21"/><stop offset="1" stop-color="#101013"/></radialGradient>
-        <linearGradient id="${uid}r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a1a0c"/><stop offset="0.6" stop-color="#24140e"/><stop offset="1" stop-color="#151416"/></linearGradient>
-      </defs>
-      <g class="up-ribbon">
-        <path d="M14 0 H62 L112 88 H72 Z M138 0 H186 L128 88 H88 Z" fill="url(#${uid}r)"/>
-        <path class="up-ribbon-edge" d="M14 0 L72 88 M62 0 L112 88 M186 0 L128 88 M138 0 L88 88" fill="none" stroke-width="1.6" filter="url(#${uid}g)"/>
-        <path class="up-ribbon-edge" d="M14 0 L72 88 M62 0 L112 88 M186 0 L128 88 M138 0 L88 88" fill="none" stroke-width="0.9" opacity="0.7"/>
-      </g>
-      <rect class="up-hanger" x="80" y="74" width="40" height="28" rx="6" fill="#141417" stroke-width="1.4"/>
-      <rect x="88" y="80" width="24" height="7" rx="3.5" fill="#060607"/>
-      <path class="up-glow" d="${d}" fill="none" stroke-width="7" filter="url(#${uid}g)"/>
-      <path d="${d}" fill="url(#${uid}f)" class="up-rim" stroke-width="1.6"/>
-      <text class="up-q" x="${cx}" y="${cy + 22}" text-anchor="middle">?</text>
-    </svg>`;
-  })();
+  const clock = (u) => {
+    const node = el("span", { class: "up-clock", role: "timer" },
+      ["DD", "HH", "MM", "SS"].flatMap((lab, k) => [
+        k ? el("i", { class: "up-sep", text: ":" }) : null,
+        el("span", { class: "up-unit" }, [el("b", { text: "00" }), el("small", { text: lab })]),
+      ]).filter(Boolean)
+    );
+    const nums = node.querySelectorAll("b");
+    const tick = () => countdownParts(u).forEach((v, k) => { if (nums[k].textContent !== v) nums[k].textContent = v; });
+    tick();
+    if (new Date(u.start) > Date.now()) setInterval(tick, 1000);
+    return node;
+  };
+  const upMeta = (u) => `${u.km} km · ${formatDate(u.date)}`;
   function upcomingCard(u) {
-    // quiet like the medals: only the countdown shows; name and date on hover
-    return el("div", { class: "upcoming", tabindex: "0", "aria-label": `Next race: ${u.full}, ${formatDate(u.date)}, ${u.city}. ${countdown(u)}.` }, [
-      el("div", { class: "up-art", html: MYSTERY_SVG }),
-      el("p", { class: "up-pill" }, ["Up next · ", el("b", { class: "up-count", text: countdown(u) })]),
-      el("h2", { class: "medal-name", text: u.full }),
-      el("p", { class: "medal-meta", text: `${formatKm(u.km)} km · ${new Date(u.date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` }),
+    // her mystery medal; only the countdown shows, name and date on hover
+    return el("div", { class: "upcoming", tabindex: "0", "aria-label": `Next race: ${u.full}, ${formatDate(u.date)}, ${u.city}` }, [
+      el("div", { class: "up-art" }, [el("img", { src: u.image, alt: "" })]),
+      el("p", { class: "up-pill" }, [el("span", { class: "up-label", text: "Up next" }), clock(u)]),
+      el("h2", { class: "medal-name", text: u.name }),
+      el("p", { class: "medal-meta", text: upMeta(u) }),
     ]);
   }
   function upcomingRow(u) {
@@ -2332,17 +2322,17 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
       el("div", { class: "row-link up-row" }, [
         el("div", { class: "row-main" }, [
           el("div", {}, [
-            el("h2", { class: "row-name", text: u.full }),
+            el("h2", { class: "row-name", text: u.name }),
             el("p", { class: "row-sub", text: `${formatDate(u.date)} · ${u.city}` }),
           ]),
           el("dl", { class: "row-stats" }, [
-            el("div", {}, [el("dt", { text: "Distance" }), withUnit("dd", formatKm(u.km), "km")]),
-            el("div", {}, [el("dt", { text: "Countdown" }), el("dd", { class: "up-count", text: countdown(u) })]),
+            el("div", {}, [el("dt", { text: "Distance" }), withUnit("dd", String(u.km), "km")]),
+            el("div", {}, [el("dt", { text: "Starts in" }), el("dd", {}, [clock(u)])]),
           ]),
         ]),
         el("div", { class: "row-side" }, [
-          el("span", { class: "up-thumb", html: MYSTERY_SVG }),
-          el("span", { class: "up-pill" }, ["Up next"]),
+          el("span", { class: "row-thumb up-thumb" }, [el("img", { src: u.image, alt: "", loading: "lazy" })]),
+          el("span", { class: "up-pill" }, [el("span", { class: "up-label", text: "Up next" })]),
         ]),
       ]),
     ]);
