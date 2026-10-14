@@ -1326,9 +1326,8 @@ a { color: inherit; text-decoration: none; }
   outline: none;
   cursor: default;
 }
-.up-art { width: 100%; max-width: 200px; margin: 0 auto; aspect-ratio: 4 / 5; display: grid; place-items: end center; }
-.up-art img { width: 100%; height: auto; filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.55)); transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.5, 1); transform-origin: 50% 0; }
-.upcoming:is(:hover, :focus-visible) .up-art img { transform: rotate(-2deg) scale(1.03); }
+/* its own row under the medals, centred (desktop and phones) */
+.upcoming { grid-column: 1 / -1; justify-content: center; padding: 20px 0 8px; }
 .up-pill {
   display: flex;
   flex-direction: column;
@@ -1338,19 +1337,19 @@ a { color: inherit; text-decoration: none; }
 }
 .up-label {
   color: var(--muted);
-  font: 600 11px/1 var(--body);
+  font: 600 12px/1 var(--body);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 .up-clock { display: inline-flex; align-items: flex-start; gap: 3px; }
-.up-unit { display: flex; flex-direction: column; align-items: center; min-width: 26px; }
+.up-unit { display: flex; flex-direction: column; align-items: center; min-width: 38px; }
 .up-unit b {
   color: var(--gold);
-  font: 600 20px/1.1 "Outfit", var(--body);
+  font: 600 30px/1.1 "Outfit", var(--body);
   font-variant-numeric: tabular-nums;
 }
-.up-unit small { margin-top: 2px; color: var(--muted); font: 500 9px/1 var(--body); letter-spacing: 0.1em; }
-.up-sep { color: var(--muted); font: 600 18px/1.15 "Outfit", var(--body); font-style: normal; opacity: 0.6; }
+.up-unit small { margin-top: 3px; color: var(--muted); font: 500 10px/1 var(--body); letter-spacing: 0.1em; }
+.up-sep { color: var(--muted); font: 600 26px/1.15 "Outfit", var(--body); font-style: normal; opacity: 0.6; }
 .upcoming:hover :is(.medal-name, .medal-meta),
 .upcoming:focus-visible :is(.medal-name, .medal-meta) { opacity: 1; transform: none; }
 /* list row */
@@ -2309,10 +2308,9 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
   };
   const upMeta = (u) => `${u.km} km · ${formatDate(u.date)}`;
   function upcomingCard(u) {
-    // her mystery medal; only the countdown shows, name and date on hover
-    return el("div", { class: "upcoming", tabindex: "0", "aria-label": `Next race: ${u.full}, ${formatDate(u.date)}, ${u.city}` }, [
-      el("div", { class: "up-art" }, [el("img", { src: u.image, alt: "" })]),
-      el("p", { class: "up-pill" }, [el("span", { class: "up-label", text: "Up next" }), clock(u)]),
+    // no medal yet: just the countdown to the next one; details on hover
+    return el("div", { class: "upcoming", tabindex: "0", "aria-label": `Next medal: ${u.full}, ${formatDate(u.date)}, ${u.city}` }, [
+      el("p", { class: "up-pill" }, [el("span", { class: "up-label", text: "Next medal in" }), clock(u)]),
       el("h2", { class: "medal-name", text: u.name }),
       el("p", { class: "medal-meta", text: upMeta(u) }),
     ]);
@@ -2327,12 +2325,8 @@ window.RUN_SOUND = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA
           ]),
           el("dl", { class: "row-stats" }, [
             el("div", {}, [el("dt", { text: "Distance" }), withUnit("dd", String(u.km), "km")]),
-            el("div", {}, [el("dt", { text: "Starts in" }), el("dd", {}, [clock(u)])]),
+            el("div", {}, [el("dt", { text: "Next medal in" }), el("dd", {}, [clock(u)])]),
           ]),
-        ]),
-        el("div", { class: "row-side" }, [
-          el("span", { class: "row-thumb up-thumb" }, [el("img", { src: u.image, alt: "", loading: "lazy" })]),
-          el("span", { class: "up-pill" }, [el("span", { class: "up-label", text: "Up next" })]),
         ]),
       ]),
     ]);
